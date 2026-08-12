@@ -1,13 +1,16 @@
 name: Release
 
-# Tag pushes (v1.2.3) build a zip, attach it to a GitHub Release, and — once
-# the CWS_* secrets below are configured — upload it to the Chrome Web Store
-# as a draft. Publishing that draft live requires an explicit manual run
-# with the "publish" input checked; a plain tag push never auto-publishes.
+# main is the default development branch (see ci.yml). Pushing to master —
+# a separate, deliberate release branch — builds a zip, tags it with the
+# version from manifest.json, attaches it to a GitHub Release, and — once
+# the CWS_* secrets below are configured — uploads it to the Chrome Web
+# Store as a draft. Publishing that draft live requires an explicit manual
+# run with the "publish" input checked; a plain push to master never
+# auto-publishes.
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       publish:
@@ -37,14 +40,19 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Read version from manifest.json
+        id: version
+        run: echo "tag=v$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Zip extension
         run: cd dist && zip -r ../hasura-query-saver.zip . && cd ..
 
       - name: Create GitHub release
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" hasura-query-saver.zip --generate-notes
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" hasura-query-saver.zip \
+            --generate-notes --target "${{ github.sha }}"
 
       # No-ops until the CWS_* secrets are set (see README) — that's expected
       # for every release before the first manual Chrome Web Store submission.

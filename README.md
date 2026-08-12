@@ -36,14 +36,19 @@ Load it in Chrome: `chrome://extensions` → enable **Developer mode** →
 
 ## Releasing
 
-Every push to `main` runs a build-only CI check (`.github/workflows/ci.yml`).
+`main` is the default development branch — every push and PR against it
+runs a build-only CI check (`.github/workflows/ci.yml`).
 
-Tagging a version builds the extension, zips it, and attaches it to a GitHub
-Release (`.github/workflows/release.yml`):
+`master` is the release branch. Pushing to it (e.g. merging `main` into
+`master`) builds the extension, tags the commit with the version from
+`manifest.json`, zips it, and attaches it to a GitHub Release
+(`.github/workflows/release.yml`):
 
 ```bash
-git tag v1.0.1
-git push --tags
+# bump "version" in manifest.json first, then:
+git checkout master
+git merge main
+git push origin master
 ```
 
 That same workflow will also upload the build to the Chrome Web Store as a
@@ -102,5 +107,6 @@ you'll need it below.
    - `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` — from steps
      3–5
 
-From then on, `git tag vX.Y.Z && git push --tags` builds and uploads a draft
-update automatically; publishing it live is a manual, deliberate step.
+From then on, bumping `manifest.json`'s version and pushing to `master`
+builds and uploads a draft update automatically; publishing it live is a
+manual, deliberate step.
