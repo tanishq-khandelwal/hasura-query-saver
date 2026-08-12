@@ -1,0 +1,57 @@
+name: Release
+
+# Tag pushes (v1.2.3) build a zip, attach it to a GitHub Release, and — once
+# the CWS_* secrets below are configured — upload it to the Chrome Web Store
+# as a draft. Publishing that draft live requires an explicit manual run
+# with the "publish" input checked; a plain tag push never auto-publishes.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Also publish the uploaded version live on the Chrome Web Store"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+      CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Zip extension
+        run: cd dist && zip -r ../hasura-query-saver.zip . && cd ..
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" hasura-query-saver.zip --generate-notes
+
+      # No-ops until the CWS_* secrets are set (see README) — that's expected
+      # for every release before the first manual Chrome Web Store submission.
+      - name: Upload to Chrome Web Store
+        if: ${{ env.EXTENSION_ID != '' }}
+        run: npx chrome-webstore-upload-cli@3 upload --source dist --extension-id "$EXTENSION_ID"
+
+      - name: Publish to Chrome Web Store
+        if: ${{ env.EXTENSION_ID != '' && inputs.publish == true }}
+        run: npx chrome-webstore-upload-cli@3 publish --extension-id "$EXTENSION_ID"

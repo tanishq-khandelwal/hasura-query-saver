@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Prism token colors for the GraphQL/JSON code blocks — hand-picked instead of an
+   imported theme so light/dark can share one rule set via prefers-color-scheme. */
+.code-block .token.comment {
+  color: #a1a1aa;
+  font-style: italic;
+}
+.code-block .token.keyword,
+.code-block .token.function {
+  color: #7c3aed;
+}
+.code-block .token.property {
+  color: #0369a1;
+}
+.code-block .token.string {
+  color: #047857;
+}
+.code-block .token.number,
+.code-block .token.boolean,
+.code-block .token.constant {
+  color: #b45309;
+}
+.code-block .token.variable {
+  color: #db2777;
+}
+.code-block .token.directive,
+.code-block .token.attr-name {
+  color: #a21caf;
+}
+.code-block .token.class-name,
+.code-block .token.fragment {
+  color: #1d4ed8;
+}
+.code-block .token.punctuation,
+.code-block .token.operator {
+  color: #71717a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .code-block .token.comment {
+    color: #71717a;
+  }
+  .code-block .token.keyword,
+  .code-block .token.function {
+    color: #a78bfa;
+  }
+  .code-block .token.property {
+    color: #38bdf8;
+  }
+  .code-block .token.string {
+    color: #34d399;
+  }
+  .code-block .token.number,
+  .code-block .token.boolean,
+  .code-block .token.constant {
+    color: #fbbf24;
+  }
+  .code-block .token.variable {
+    color: #f472b6;
+  }
+  .code-block .token.directive,
+  .code-block .token.attr-name {
+    color: #e879f9;
+  }
+  .code-block .token.class-name,
+  .code-block .token.fragment {
+    color: #60a5fa;
+  }
+  .code-block .token.punctuation,
+  .code-block .token.operator {
+    color: #a1a1aa;
+  }
+}

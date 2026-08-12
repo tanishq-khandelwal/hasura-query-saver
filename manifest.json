@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Hasura Query Saver",
+  "version": "1.0.0",
+  "description": "Save, autofill, export, and import GraphiQL queries, variables, and headers on Hasura's public GraphiQL console.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Hasura Query Saver",
+    "default_popup": "panel.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://cloud.hasura.io/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://cloud.hasura.io/public/graphiql*"],
+      "js": ["src/content-main.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://cloud.hasura.io/public/graphiql*"],
+      "js": ["src/content-isolated.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+// Minimal IndexedDB wrapper for the saved-queries store.
+
+const DB_NAME = "hasura-query-saver";
+const DB_VERSION = 1;
+const STORE = "queries";
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: "id", autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function withStore(mode, fn) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, mode);
+    const req = fn(tx.objectStore(STORE));
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export const dbGetAll = () => withStore("readonly", (s) => s.getAll());
+export const dbAdd = (record) => withStore("readwrite", (s) => s.add(record));
+export const dbPut = (record) => withStore("readwrite", (s) => s.put(record));
+export const dbDelete = (id) => withStore("readwrite", (s) => s.delete(id));
