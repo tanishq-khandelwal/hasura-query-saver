@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Query Saver for Hasura GraphiQL",
   "version": "1.0.0",
-  "description": "Save, re-apply, export, and import queries, variables, and headers on Hasura's public GraphiQL console. Unofficial \u2014 not affiliated with Hasura.",
+  "description": "Save, re-apply, and share queries, variables, and headers on Hasura's public GraphiQL. Unofficial, not affiliated with Hasura.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
