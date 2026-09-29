@@ -3,9 +3,21 @@
 @tailwind utilities;
 
 html,
-body {
+body,
+#root {
   margin: 0;
   padding: 0;
+  height: 100%;
+}
+
+.toast-in {
+  animation: toast-in 160ms ease-out;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 /* Prism token colors for the GraphQL/JSON code blocks — hand-picked instead of an

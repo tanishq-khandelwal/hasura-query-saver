@@ -1,11 +1,11 @@
 {
   "name": "hasura-query-saver",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node --test"
   },
   "dependencies": {
     "prismjs": "^1.30.0",

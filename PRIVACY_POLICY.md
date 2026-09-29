@@ -1,10 +1,11 @@
-# Privacy Policy — Hasura Query Saver
+# Privacy Policy — Query Saver for Hasura GraphiQL
 
-**Last updated:** 2026-08-12
+**Last updated:** 2026-09-29
 
-Hasura Query Saver is a browser extension for saving, autofilling, and sharing
-GraphQL queries, variables, and headers on Hasura's public GraphiQL console
-(`https://cloud.hasura.io/public/graphiql`).
+Query Saver for Hasura GraphiQL is a browser extension for saving,
+re-applying, and sharing GraphQL queries, variables, and headers on Hasura's
+public GraphiQL console (`https://cloud.hasura.io/public/graphiql`). It is an
+unofficial tool and is not affiliated with or endorsed by Hasura.
 
 ## What this extension does
 
@@ -13,6 +14,8 @@ GraphQL queries, variables, and headers on Hasura's public GraphiQL console
 - Stores everything you save (query text, variables, header names/values —
   including any tokens or secrets you choose to save as headers) in your
   browser's local IndexedDB storage, on your own device.
+- Before applying a saved query, it saves a copy of what's currently in the
+  GraphiQL editor to that same local storage, so your unsaved work isn't lost.
 - Lets you export your saved queries to a JSON file, and import a JSON file
   back in, entirely under your control.
 
@@ -23,13 +26,20 @@ GraphQL queries, variables, and headers on Hasura's public GraphiQL console
 - It does not collect analytics, telemetry, or usage data of any kind.
 - It does not access any site other than `cloud.hasura.io/public/graphiql*`.
 
+## Permissions
+
+- `scripting` — to connect to GraphiQL tabs that were already open when the
+  extension was installed or updated.
+- `sidePanel` — the extension's interface is shown in the browser side panel.
+- Host access to `cloud.hasura.io` — to read and write the GraphiQL editor
+  and request-headers table. No other site is accessed.
+
 ## Data you export
 
-If you use the Export feature, the resulting JSON file contains whatever you
-saved, in plain text — including any header values (such as admin secrets or
-auth tokens) you chose to save. Treat exported files with the same care you'd
-give any file containing credentials, and only share them with people you
-trust.
+By default, exported files have all header values blanked, so admin secrets
+and auth tokens are not included. If you explicitly choose "Export with
+header values", the file contains those values in plain text — treat it like
+any file containing credentials, and only share it with people you trust.
 
 ## Uninstalling
 
@@ -39,4 +49,4 @@ except for any files you separately exported.
 ## Contact
 
 Questions about this policy can be opened as an issue on the project's
-GitHub repository.
+GitHub repository: https://github.com/tanishq-khandelwal/hasura-query-saver/issues

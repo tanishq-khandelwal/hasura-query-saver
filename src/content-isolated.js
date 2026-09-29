@@ -22,7 +22,7 @@ function callMainWorld(type, payload) {
     const timer = setTimeout(() => {
       window.removeEventListener("message", onMessage);
       resolve({ ok: false, error: "Timed out waiting for the page script to respond." });
-    }, 5000);
+    }, 15000); // Must outlast content-main's 4s editor wait plus writing a long headers table.
 
     window.addEventListener("message", onMessage);
     window.postMessage({ source: "hqs-request", id, type, payload }, "*");
