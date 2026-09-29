@@ -1,18 +1,28 @@
 name: Release
 
 # main is the default development branch (see ci.yml). Pushing to master —
-# a separate, deliberate release branch — builds a zip, tags it with the
-# version from manifest.json, attaches it to a GitHub Release, and — once
-# the CWS_* secrets below are configured — uploads it to the Chrome Web
-# Store as a draft. Publishing that draft live requires an explicit manual
-# run with the "publish" input checked; a plain push to master never
-# auto-publishes.
+# a separate, deliberate release branch — computes the next version from the
+# latest v* tag (scripts/version.js), builds with it, tags the commit,
+# attaches a zip to a GitHub Release, and — once the CWS_* secrets below are
+# configured — uploads it to the Chrome Web Store as a draft.
+#
+# Versioning: patch by default; put #minor or #major in any commit (e.g. the
+# PR title) since the last release to bump that instead, or pick a level when
+# running manually. manifest.json's version is never bumped by hand.
+#
+# Publishing that draft live requires an explicit manual run with the
+# "publish" input checked; a plain push to master never auto-publishes.
 on:
   push:
     branches:
       - master
   workflow_dispatch:
     inputs:
+      bump:
+        description: "Version bump (auto = patch unless a commit says #minor/#major)"
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
       publish:
         description: "Also publish the uploaded version live on the Chrome Web Store"
         type: boolean
@@ -20,6 +30,11 @@ on:
 
 permissions:
   contents: write
+
+# Two overlapping runs would compute the same next version.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -31,6 +46,8 @@ jobs:
       REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags, for scripts/version.js
 
       - uses: actions/setup-node@v4
         with:
@@ -38,24 +55,32 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
+      - run: npm test
 
-      - name: Read version from manifest.json
+      - name: Compute next version
         id: version
-        run: echo "tag=v$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(node scripts/version.js "${{ inputs.bump || 'auto' }}")
+          echo "Releasing v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - run: npm run build
+        env:
+          EXT_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Zip extension
-        run: cd dist && zip -r ../hasura-query-saver.zip . && cd ..
+        run: cd dist && zip -qrX ../query-saver-for-hasura-${{ steps.version.outputs.tag }}.zip . && cd ..
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" hasura-query-saver.zip \
+          gh release create "${{ steps.version.outputs.tag }}" "query-saver-for-hasura-${{ steps.version.outputs.tag }}.zip" \
             --generate-notes --target "${{ github.sha }}"
 
-      # No-ops until the CWS_* secrets are set (see README) — that's expected
-      # for every release before the first manual Chrome Web Store submission.
+      # No-ops until the CWS_EXTENSION_ID secret is set — expected for every
+      # release before the first manual Chrome Web Store submission.
       - name: Upload to Chrome Web Store
         if: ${{ env.EXTENSION_ID != '' }}
         run: npx chrome-webstore-upload-cli@3 upload --source dist --extension-id "$EXTENSION_ID"
