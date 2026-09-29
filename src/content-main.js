@@ -110,7 +110,12 @@ async function handleRequest(type, payload) {
   throw new Error(`Unknown request type: ${type}`);
 }
 
-window.addEventListener("message", (event) => {
+// An extension reload/update doesn't tear down MAIN-world scripts, and
+// hasura.js re-injects this file into tabs opened before the reload. Swap out
+// any previous copy's listener so exactly one (the newest) handles each
+// request — otherwise two copies would write the headers table concurrently.
+window.removeEventListener("message", window.__hqsListener);
+window.__hqsListener = (event) => {
   if (event.source !== window) return;
   const msg = event.data;
   if (!msg || msg.source !== "hqs-request") return;
@@ -122,4 +127,5 @@ window.addEventListener("message", (event) => {
     .catch((err) => {
       window.postMessage({ source: "hqs-response", id: msg.id, ok: false, error: err.message }, "*");
     });
-});
+};
+window.addEventListener("message", window.__hqsListener);

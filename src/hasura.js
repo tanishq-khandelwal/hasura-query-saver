@@ -1,7 +1,12 @@
 // Talks to the content script running on the Hasura GraphiQL tab.
 
+export const GRAPHIQL_URL = "https://cloud.hasura.io/public/graphiql";
+const GRAPHIQL_MATCH = `${GRAPHIQL_URL}*`;
+
 export async function getHasuraTab() {
-  const tabs = await chrome.tabs.query({ url: "https://cloud.hasura.io/public/graphiql*" });
+  const [active] = await chrome.tabs.query({ url: GRAPHIQL_MATCH, active: true, currentWindow: true });
+  if (active) return active;
+  const tabs = await chrome.tabs.query({ url: GRAPHIQL_MATCH });
   if (!tabs.length) return null;
   // If several matching tabs are open (stale/background ones included), the
   // one most recently interacted with is almost certainly the one meant.

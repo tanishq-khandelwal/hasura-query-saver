@@ -1,4 +1,4 @@
-# Hasura Query Saver
+# Query Saver for Hasura GraphiQL
 
 A browser extension for Hasura's public GraphiQL console
 (`cloud.hasura.io/public/graphiql`). It fixes the "my queries vanish"
@@ -7,6 +7,8 @@ tokens — just regular headers) locally in your browser, browse/search them,
 apply one back into GraphiQL with a click, and export/import them as a JSON
 file to share with teammates.
 
+> Unofficial community tool — not affiliated with or endorsed by Hasura.
+
 Everything is stored locally in IndexedDB. Nothing is sent anywhere — see
 [`PRIVACY_POLICY.md`](./PRIVACY_POLICY.md).
 
@@ -14,13 +16,15 @@ Everything is stored locally in IndexedDB. Nothing is sent anywhere — see
 
 ```bash
 npm install
+npm test        # runs the src/*.test.js checks (plain node --test)
 npm run build   # outputs the unpacked extension to dist/
 ```
 
 Load it in Chrome: `chrome://extensions` → enable **Developer mode** →
-**Load unpacked** → select `dist/`.
+**Load unpacked** → select `dist/`. Clicking the toolbar icon opens the
+extension as a side panel, which stays open while you work in GraphiQL.
 
-`npm run dev` starts Vite in watch mode if you're iterating on the popup UI.
+`npm run dev` starts Vite in watch mode if you're iterating on the panel UI.
 
 ### How it works
 
@@ -29,9 +33,10 @@ Load it in Chrome: `chrome://extensions` → enable **Developer mode** →
   reachable there — they're not visible to a normal ("isolated world")
   content script, which shares the DOM but not page-attached JS properties.
 - `src/content-isolated.js` runs in the normal isolated world (so it has
-  `chrome.runtime` access) and relays messages between the extension popup
+  `chrome.runtime` access) and relays messages between the extension side panel
   and `content-main.js` over `window.postMessage`.
-- `src/App.jsx` is the popup UI (React + Tailwind), storing saved queries in
+- `src/background.js` just makes the toolbar icon open the side panel.
+- `src/App.jsx` is the side panel UI (React + Tailwind), storing saved queries in
   IndexedDB via `src/db.js`.
 
 ## Releasing
@@ -45,7 +50,7 @@ runs a build-only CI check (`.github/workflows/ci.yml`).
 (`.github/workflows/release.yml`):
 
 ```bash
-# bump "version" in manifest.json first, then:
+# bump "version" in manifest.json first (it's the only version field), then:
 git checkout master
 git merge main
 git push origin master
@@ -76,8 +81,9 @@ $5 fee, paid by you through Google's own flow).
 3. Fill in the store listing (description, screenshots, category) and the
    **Privacy practices** tab — point it at a hosted copy of
    `PRIVACY_POLICY.md` (e.g. via GitHub Pages, or just the raw GitHub URL).
-   Declare the permissions honestly: `activeTab` and `scripting` to read/write
-   the GraphiQL page, `host_permissions` scoped to `cloud.hasura.io` only.
+   Declare the permissions honestly: `scripting` to read/write the GraphiQL
+   page, `sidePanel` for the UI, `host_permissions` scoped to
+   `cloud.hasura.io` only.
 4. Submit for review.
 
 Once it's approved, note the **extension ID** shown on its dashboard page —
