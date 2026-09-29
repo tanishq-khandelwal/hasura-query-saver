@@ -12,6 +12,32 @@ file to share with teammates.
 Everything is stored locally in IndexedDB. Nothing is sent anywhere — see
 [`PRIVACY_POLICY.md`](./PRIVACY_POLICY.md).
 
+## Features
+
+- **One-click save** — captures the current query, variables, and headers
+  from GraphiQL, named after the operation.
+- **One-click apply** — loads a saved query back into GraphiQL. Whatever was
+  in the editor is auto-saved first, and a **Restore** action puts it back.
+- **Side panel** — stays open next to GraphiQL while you work (a popup would
+  close, and lose your draft, on the first click into the page).
+- **Search** across names, queries, variables, and header keys (`/` to focus).
+- **Edit, duplicate, delete** — deletes can be undone.
+- **Header values masked** until you click *Show values*.
+- **Export / import** as JSON. Exports blank header values by default so
+  secrets don't leak; including them is a separate, clearly marked option.
+  Imports skip duplicates.
+
+## Usage
+
+1. Open <https://cloud.hasura.io/public/graphiql> and click the extension's
+   toolbar icon — the side panel opens and shows *Connected to GraphiQL*.
+2. Write a query, then hit **Save current GraphiQL query**.
+3. Pick any saved query and hit **Apply to GraphiQL** (or the ▶ button on
+   hover in the list).
+4. Use the **⋯** menu to import or export.
+
+Keyboard: `/` search · `⌘S` / `Ctrl+S` save while editing · `Esc` cancel.
+
 ## Development
 
 ```bash
@@ -41,8 +67,11 @@ extension as a side panel, which stays open while you work in GraphiQL.
 
 ## Releasing
 
-`main` is the default development branch — every push and PR against it
-runs a build-only CI check (`.github/workflows/ci.yml`).
+`main` is the default development branch. Changes land through pull
+requests: a repository ruleset requires one approving review (repository
+admins can bypass it when merging a PR) and blocks force-pushes and
+deletion. Every push and PR runs CI — `npm test` then `npm run build`
+(`.github/workflows/ci.yml`).
 
 `master` is the release branch. Pushing to it (e.g. merging `main` into
 `master`) builds the extension, tags the commit with the version from
@@ -75,16 +104,33 @@ $5 fee, paid by you through Google's own flow).
 
 ### 2. First submission (manual, one time)
 
-1. `npm run build`, then zip the **contents** of `dist/` (not the folder
-   itself — `manifest.json` needs to be at the zip root).
-2. In the Developer Dashboard, create a new item and upload that zip.
-3. Fill in the store listing (description, screenshots, category) and the
-   **Privacy practices** tab — point it at a hosted copy of
-   `PRIVACY_POLICY.md` (e.g. via GitHub Pages, or just the raw GitHub URL).
-   Declare the permissions honestly: `scripting` to read/write the GraphiQL
-   page, `sidePanel` for the UI, `host_permissions` scoped to
-   `cloud.hasura.io` only.
-4. Submit for review.
+1. In the dashboard's **Account** page, set the publisher contact email and
+   verify it — publishing is blocked until you do.
+2. `npm run build`, then zip the **contents** of `dist/` (not the folder
+   itself — `manifest.json` needs to be at the zip root):
+   ```bash
+   cd dist && zip -qrX ../query-saver-for-hasura-v$(node -p "require('../manifest.json').version").zip . && cd ..
+   ```
+3. In the Developer Dashboard, create a new item and upload that zip. The
+   manifest `description` doubles as the store summary and must be
+   ≤ 132 characters.
+4. Fill in the **Store listing**:
+   - Category: *Developer Tools*; language: *English*.
+   - Store icon: `store/store-icon-128.png` (96×96 artwork with 16px
+     transparent padding, per Google's guidelines).
+   - Screenshots: 1–5, exactly **1280×800** or **640×400**, JPEG or PNG
+     **without alpha** (macOS screenshots have alpha — convert them, e.g.
+     `sips -s format jpeg in.png --out out.jpg`). Don't show internal
+     endpoints or schemas; they'll be public.
+   - Small promo tile: 440×280.
+5. Fill in the **Privacy practices** tab: single purpose; permission
+   justifications (`scripting` re-injects the bundled content scripts into
+   already-open GraphiQL tabs, `sidePanel` hosts the UI, host access is
+   limited to `cloud.hasura.io`); no remote code; data usage —
+   *Authentication information* and *Website content* (stored on-device
+   only); all three certifications; privacy policy URL
+   `https://github.com/tanishq-khandelwal/hasura-query-saver/blob/main/PRIVACY_POLICY.md`.
+6. Save draft, then submit for review.
 
 Once it's approved, note the **extension ID** shown on its dashboard page —
 you'll need it below.
@@ -109,7 +155,7 @@ you'll need it below.
    approve access, and hand you a **refresh token**.
 6. In the GitHub repo, go to **Settings → Secrets and variables → Actions**
    and add these repository secrets:
-   - `CWS_EXTENSION_ID` — from step 2
+   - `CWS_EXTENSION_ID` — from the dashboard, once the first submission exists
    - `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` — from steps
      3–5
 
